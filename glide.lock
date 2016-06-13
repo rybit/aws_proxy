@@ -1,0 +1,14 @@
+hash: bb6e3753e83ce3c81bb84a58990b22e0a6eeb60507f2494a777cf57cb512fa6c
+updated: 2016-06-13T09:49:53.909634407-07:00
+imports:
+- name: github.com/crowdmob/goamz
+  version: 3a06871fe9fc0281ca90f3a7d97258d042ed64c0
+  subpackages:
+  - aws
+- name: github.com/inconshreveable/mousetrap
+  version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
+- name: github.com/spf13/cobra
+  version: 1238ba19d24b0b9ceee2094e1cb31947d45c3e86
+- name: github.com/spf13/pflag
+  version: 367864438f1b1a3c7db4da06a2f55b144e6784e0
+devImports: []

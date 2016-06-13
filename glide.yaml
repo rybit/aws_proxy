@@ -1,0 +1,6 @@
+package: github.com/netlify/aws_caddy_proxy
+import:
+- package: github.com/crowdmob/goamz
+  subpackages:
+  - aws
+- package: github.com/spf13/cobra
