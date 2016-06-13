@@ -1,7 +1,7 @@
 {
-	"port": 9000,
-	"secret_key": "JWm7vtT0kDpRt3b9nlBvQa7f1RE+ZLw4bVqRnJ3N",
-	"access_key": "AKIAIFIM74CHGDDCZRUA",
+	"port": 9500,
+	"secret_key": "PLACEHOLDER",
+	"access_key": "PLACEHOLDER",
 	"region": "us-east-1",
 	"service": "es",
 	"endpoint": "search-netlify-gywdgagpzjbydw5olx3krgx4fy.us-east-1.es.amazonaws.com"

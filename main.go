@@ -7,8 +7,9 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"strings"
-	"time"
 
 	"github.com/crowdmob/goamz/aws"
 	"github.com/spf13/cobra"
@@ -54,11 +55,13 @@ func start(cmd *cobra.Command, args []string) {
 
 	var auth aws.Auth
 	if config.SecretKey == "" && config.AccessKey == "" {
+		log.Println("Setting config from env")
 		auth, err = aws.EnvAuth()
 		if err != nil {
 			log.Fatal("Failed to load the auth from the environment")
 		}
 	} else {
+		log.Println("Setting config from file")
 		auth = aws.Auth{
 			SecretKey: config.SecretKey,
 			AccessKey: config.AccessKey,
@@ -67,54 +70,18 @@ func start(cmd *cobra.Command, args []string) {
 
 	signer := aws.NewV4Signer(auth, config.Service, region)
 
-	sign := func(w http.ResponseWriter, r *http.Request) {
-		proxyURL := fmt.Sprintf("http://%s%s", config.Endpoint, r.URL.RequestURI())
-
-		req, err := http.NewRequest(r.Method, proxyURL, r.Body)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		//req.Header = r.Header
-		//delete(req.Header, "Cookie")
-
-		req.Header.Add("Date", time.Now().UTC().Format(time.RFC3339))
-		req.Header.Add("accept", "*/*")
-		signer.Sign(req)
-
-		fmt.Println("-----------")
-		for k, vs := range r.Header {
-			fmt.Printf("incoming: %s: %v\n", k, vs)
-		}
-
-		for k, vs := range req.Header {
-			fmt.Printf("outgoing: %s: %v\n", k, vs)
-		}
-		fmt.Println("-----------")
-
-		rsp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		defer rsp.Body.Close()
-		data, err := ioutil.ReadAll(rsp.Body)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		_, err = w.Write(data)
-		if err != nil {
-			log.Println(err)
-			return
-		}
+	url, _ := url.Parse(fmt.Sprintf("http://%s", config.Endpoint))
+	proxy := httputil.NewSingleHostReverseProxy(url)
+	proxy.Director = func(r *http.Request) {
+		proxyURL, _ := url.Parse(fmt.Sprintf("http://%s%s", config.Endpoint, r.URL.RequestURI()))
+		r.URL = proxyURL
+		r.Host = config.Endpoint
+		r.Header.Del("Connection")
+		signer.Sign(r)
 	}
 
-	http.HandleFunc("/", sign)
-	http.ListenAndServe(fmt.Sprintf(":%d", config.Port), nil)
+	log.Printf("Serving on %v", config.Port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), proxy))
 }
 
 func loadFromFile(filename string) (*configuration, error) {
