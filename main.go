@@ -77,6 +77,9 @@ func start(cmd *cobra.Command, args []string) {
 		r.URL = proxyURL
 		r.Host = config.Endpoint
 		r.Header.Del("Connection")
+		r.Header.Del("authorization")
+		r.Header.Del("X-Forwarded-For")
+
 		signer.Sign(r)
 	}
 
